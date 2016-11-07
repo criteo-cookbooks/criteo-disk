@@ -1,7 +1,7 @@
 language: ruby
 cache: bundler
 rvm:
-  - 2.2.2
+- 2.2.2
 deploy:
   edge:
     source: criteo-forks/dpl
@@ -13,7 +13,6 @@ deploy:
   on:
     tags: true
 all_branches: true
-
 env:
   global:
   - secure: Yu/qFkU6sVYoOjLJu0JpgYewreWByHAgmfo2zk7VDhAKfloLia+A0MfM5zBzoj46f/lrMg7r9oERtHMszMottgP3nBJ+FUHK9CB/XoEIJq5wOB6a59A2O5Gp6kQ9qspj70DMDT6AqGUsnPCRmj9SNpoRXTfZLYkhVqhq3Ai2e3WsULgavU0zQnFH9ImGjunum/DGTeDkdWPW98RrZt1afwn4l5RgFuTHtxtdIwvO6RPUUKUS/hs17yUG7iFg6DTU27SJwMYbaX62chzWnwBNPgxR7ZhgHJYBakPOV2/upAB+GQxze7nuahlD7zzefwdAqY0qe62+dO228D9ZrgYchD3tYs8DhMPN1LletvpPmbkBfODuP9NtlaYv5pHCZHN6thZx2cOi92jUMu8gDGNK55/iwoIVnTNSd6z4MchEGZqLIDZ7cXhJVR6UXoyaRypqAIQ3qtRQG/XUBynZI8l5cDn7SJVGDlPRHvUHpSHcZYBZWnqSwE3b59jcc6ffBjqKm4K7OGyOchQaeQpfoD7sLOnMoL8AEYzuy0YW9a95acyBRccWG+TNxFMWcHID4fVpVv9i7uAs33eqlG+ZWK4JK0jitzAwSxl6Z4H7egQVFUJgoaiqA6VeKCaNQ8rhJafT9XIwSt1gpqlaK357rwZJGFytS71AKQgLdHYCkQjYV7M=
@@ -22,6 +21,7 @@ env:
   - secure: FlJmj8/jjxfYkmFnrm+spRkW/W9cQco3IcTqDTuRWTiigXI0c5DMsSi4fSilApOVa33PPTCEH0bWCNorxyofIdF9ihzTVtArgwWBA26Tw+Ztx0wLSCSDBJSsqlG1UFt+2YCiJTQlFwWrWQVsjXIVml7gCYkuOpAAfhky1p2sB+U6rpsWIxlwjM5JnN5UV+KQo/fSz79Fes50UM4HGkWjtJpWntoeDUuGAHgR/M7UkluoTItUPngIajy7OLLkFkmYnNkN5jtBCrANynjuYbdEQ8vg0/tjFcGdjQukQhZNp9OGhWq0HMMdTVFxUnuSe7QlaGdDmnoUwL/3MZxXJRssD8VBWYpzSwtqyLfcaMoLhpANkrFfCs5gzq1NQdyutF1atPm/l6+dbOngMrrZ8BuIH9+GO1q38f4mCHZ8OtxB+6zfmGju/gGcJFEfkfdZlQatdHTkqBjIzefUPYOwCJrxUraIbwXqkFvuYG1W+tooI/OPywmVf9Xjnw9RzwDOv4NtVh9XCaZEcZLIioGPiE8C4k/mwLZilHCpx79OO/+k/hkg2lRCcS9SPMvZBlHyMh60xphFpJ+Al2coDO/tjvyhdFYCYKA0R2dp8B8rsZhBwD3k3ladR7nGV3lg1adJzdfie0RkPGp0ZY/08KExyCROgvp0R4rqQ/Q1PybXXxjpHH0=
 before_install:
 - openssl aes-256-cbc -K $encrypted_22e07928ebb4_key -iv $encrypted_22e07928ebb4_iv
-  -in .travis/travis-ci.pem.enc
-  -out .travis/travis-ci.pem
-  -d
+  -in .travis/travis-ci.pem.enc -out .travis/travis-ci.pem -d
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_776f298280bc_key -iv $encrypted_776f298280bc_iv
+  -in .travis/client.pem.enc -out .travis/client.pem -d
