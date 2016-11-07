@@ -1,0 +1,4 @@
+- name: default
+  add_vagrant_disk: true
+  run_list:
+    - recipe[criteo-disk::default]

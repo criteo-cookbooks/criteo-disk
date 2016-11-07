@@ -1,0 +1,76 @@
+---
+# The following environment variables are required:
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - AWS_SSH_KEY_ID
+# - AWS_REGION
+#
+# Optional environment variables:
+# - AWS_SECURITY_GROUP
+# - AWS_SUBNET
+# - KITCHEN_NO_CONCURRENCY set it to true if you do not want concurrency
+
+driver:
+  name: ec2
+  instance_type: t2.micro
+  associate_public_ip: true
+  region: <%= ENV['AWS_REGION'] || 'us-west-2' %>
+  subnet_filter:
+    tag:   'Name'
+    value: <%= ENV['AWS_SUBNET'] || 'chef-testing-opensource-vpc-subnet' %>
+  security_group_filter:
+    tag:   'Name'
+    value: <%= ENV['AWS_SECURITY_GROUP'] || 'chef-testing-opensource-vpc-security-group' %>
+  block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        volume_type: gp2
+        delete_on_termination: true
+    - device_name: /dev/sdb
+      ebs:
+        volume_size: 20
+        volume_type: gp2
+        delete_on_termination: true
+
+transport:
+  ssh_key: <%= ENV['HOME'] %>/.ssh/id_rsa
+
+platforms:
+  - name: centos-6
+    driver:
+      image_id: ami-05cf2265
+    attributes:
+      criteo_disk:
+        '/dev/xvdb':
+          partitions:
+            DATA:
+              size: '10G'
+              file_system: 'ext4'
+              mount_point: '/media/data'
+              mount_options: ['noatime','nobarrier','data=writeback','noauto_da_alloc']
+              mkfs_options:
+                '-O': 'uninit_bg'
+                '-m': 0
+                '-E': 'lazy_itable_init=1'
+  - name: centos-7
+    driver:
+      image_id: ami-d2c924b2
+    attributes:
+      criteo_disk:
+        '/dev/xvdb':
+          partitions:
+            TOOLS:
+              size: '11G'
+              file_system: 'ext4'
+              mount_point: '/media/data'
+              mount_options: 'defaults'
+            DATA:
+              size: '6G'
+              file_system: 'ext4'
+              mount_point: '/media/data2'
+              mount_options: 'defaults'
+            MISC:
+              size: '2G'
+              file_system: 'ext4'
+              mount_point: '/media/data3'
+              mount_options: 'defaults'

@@ -1,0 +1,61 @@
+---
+driver:
+  name: vagrant
+  vagrantfiles:
+    - .vagrant_files/Vagrant.Disk.rb
+
+provisioner:
+  name: chef_zero
+  attributes:
+    authorization:
+      sudo:
+        users:
+          - vagrant
+
+platforms:
+- name: centos-6
+  transport:
+    name: speedy_ssh
+  driver_config:
+    box:     opscode-centos-6.7
+  attributes:
+    criteo_disk:
+      '/dev/sdb':
+        partitions:
+          DATA:
+            size: '10G'
+            file_system: 'ext4'
+            mount_point: '/media/data'
+            mount_options: ['noatime','nobarrier','data=writeback','noauto_da_alloc']
+            mkfs_options:
+              '-O': 'uninit_bg'
+              '-m': 0
+              '-E': 'lazy_itable_init=1'
+
+- name: centos-7
+  transport:
+    name: speedy_ssh
+  driver_config:
+    box:     criteo-centos-7.2-core
+  attributes:
+    criteo_disk:
+      '/dev/sdb':
+        partitions:
+          TOOLS:
+            size: '11G'
+            file_system: 'ext4'
+            mount_point: '/media/data'
+            mount_options: 'defaults'
+          DATA:
+            size: '6G'
+            file_system: 'ext4'
+            mount_point: '/media/data2'
+            mount_options: 'defaults'
+          MISC:
+            size: '2G'
+            file_system: 'ext4'
+            mount_point: '/media/data3'
+            mount_options: 'defaults'
+
+suites:
+<%= require 'erubis'; Erubis::Eruby.new(File.read('.kitchen_suites.yml')).evaluate %>
