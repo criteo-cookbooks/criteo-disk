@@ -147,5 +147,36 @@ module DiskCriteo
       when String then opts
       end
     end
+
+    # Use in queue_property resource to load the current value
+    def check_queue_property(file)
+      raise "Property file #{file} doesn't exist" unless ::File.exists?(file)
+      raise "The given property file is a directory (#{file})." if ::File.directory?(file)
+      case ::File.basename(file)
+      when 'scheduler'
+        # We extract the active scheduler
+        result = ::File.open(file).readline.match(/.*\[(.+)\].*/)
+        result && result[1]
+      else
+        ::File.open(file).readline.to_i
+      end
+    end
+
+    def hash_to_path(hash, prepend_string = '' )
+      return {} if hash.nil?
+      paths_values = Hash.new
+      hash.each do |key, value|
+        case value
+        when Hash
+          value.map do |k,v|
+            paths_values[::File.join(prepend_string, key, k)] = v
+          end
+        when String, Integer
+          paths_values[::File.join(prepend_string, key )] = value
+        end
+      end
+      return paths_values
+    end
+
   end
 end

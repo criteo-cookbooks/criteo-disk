@@ -4,6 +4,7 @@ default_action :create
 # Resource properties
 property :device, String, name_property: true
 property :label, String, default: 'gpt', required: true
+property :queue_properties, Hash
 property :partitions, Hash, required: true
 
 load_current_value do |new_resource|
@@ -25,6 +26,15 @@ action :create do
     parted_disk device do
       label_type label
       action :mklabel
+    end
+  end
+
+  # We set the queue properties
+  property_path = ::File.join('/sys','block', ::File.basename(device), 'queue')
+  ::DiskCriteo::Utils.hash_to_path(queue_properties, property_path).each do |file, val|
+    queue_property file do
+      value val
+      action :set
     end
   end
 
