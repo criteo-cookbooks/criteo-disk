@@ -10,8 +10,8 @@ property :size, String, required: true
 property :flag, String, required: false
 property :file_system, String, required: true
 property :mkfs_opts, String, required: false
-property :mount_opts, String, required: true
-property :mount_point, String, required: true
+property :mount_opts, String
+property :mount_point, String
 
 load_current_value do |new_resource|
   all_infos = ::DiskCriteo::Utils.scan_existing(node, new_resource.disk)
@@ -66,7 +66,8 @@ action :create do
       action todo
     end
 
-    # Format and mount
+    # Format and mount if needed
+    to_perform = mount_point.nil? ? [:create] : [:create, :mount, :enable]
     filesystem part_name do
       fstype file_system
       device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name)}" }
@@ -75,7 +76,7 @@ action :create do
       mkfs_options mkfs_opts
       ignore_existing true
       force true
-      action [:create, :mount, :enable]
+      action to_perform
     end
   end
 
@@ -86,14 +87,17 @@ action :create do
         action [:umount, :disable]
       end
     end
-    directory mount_point do
-      recursive true
-    end
-    mount mount_point do
-      device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name)}" }
-      fstype file_system
-      options mount_opts
-      action [:mount, :enable]
+    if mount_point
+      directory mount_point do
+        recursive true
+      end
+
+      mount mount_point do
+        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name)}" }
+        fstype file_system
+        options mount_opts
+        action [:mount, :enable]
+      end
     end
   end
 end

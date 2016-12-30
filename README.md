@@ -63,6 +63,8 @@ By create, we mean :
 * Mount the partition on the mount_point with the mount_options
 * Update the fstab
 
+> The last 2 actions won't be performed if we don't specify mount_point
+
 It takes the following properties :
 
 * part_name - The name of the partition. It's used as uniq key for a partition. *
