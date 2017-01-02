@@ -6,6 +6,7 @@
 
 # Example :
 # node['criteo_disk'][DEVICE]['label']
+# node['criteo_disk'][DEVICE]['queue_properties']
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['size']
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['id']
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['fstype']
@@ -13,3 +14,4 @@
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['flags']
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['mount_point']
 # node['criteo_disk'][DEVICE]['partitions'][NAME]['mount_options']
+default['criteo_disk'] = {}

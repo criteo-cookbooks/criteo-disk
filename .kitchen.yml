@@ -21,6 +21,9 @@ platforms:
   attributes:
     criteo_disk:
       '/dev/sdb':
+        queue_properties:
+          scheduler: 'noop'
+          read_ahead_kb: 8192
         partitions:
           DATA:
             size: '10G'
@@ -40,6 +43,9 @@ platforms:
   attributes:
     criteo_disk:
       '/dev/sdb':
+        queue_properties:
+          scheduler: 'noop'
+          read_ahead_kb: '8192'
         partitions:
           TOOLS:
             size: '11G'

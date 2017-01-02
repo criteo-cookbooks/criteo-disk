@@ -28,6 +28,7 @@ Attributes
 ==========
 
 * `node['criteo_disk'][#{DEVICE}]['label']` - It's strongly recommanded to use "gpt" label.
+* `node['criteo_disk'][#{DEVICE}]['queue_properties']` - Specify the queue properties you want to set for the device.
 * `node['criteo_disk'][#{DEVICE}]['partitions'][#{NAME}]['size']` - Specify the size of the partition NAME. If you want that your partition uses all the disk size, use the wordkey `ALL`
 * `node['criteo_disk'][#{DEVICE}]['partitions'][#{NAME}]['file_system']` - Specify the type of filesystem (ex : ext3, ext4 ...)
 * `node['criteo_disk'][#{DEVICE}]['partitions'][#{NAME}]['mount_point']` - Specify the mount point to use for the partition
@@ -50,11 +51,20 @@ The disk resource will set the declared label (if needed) on the disk and call t
 It takes the following properties :
 * device - String containing the disk to interact with
 * label - String containing the label to set *
+* queue_properties - Hash containing the properties and values you want to set.
 * partitions - Hash containing the partitions to manage on the disk
 
+queue_property
+--------------
+The queue_property resource will set the given property to the given value.
+It takes the following parameters :
+* name - name of the property to set
+* value - value of the property
+* disk - device where the property will be set
 
 partition
--------
+---------
+
 The partition resource will create the partition passed as property.
 
 By create, we mean :
