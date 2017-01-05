@@ -1,4 +1,4 @@
-module DiskCriteo
+module CriteoDisk
   # Functions for partition management
   module Utils
     module_function
