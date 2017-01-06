@@ -4,8 +4,7 @@
 #
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
-# This recipe will install parted
-include_recipe 'parted::default'
+include_recipe 'criteo-disk::prerequisite'
 
 node['criteo_disk'].each do |device, opts|
   criteo_disk device do
