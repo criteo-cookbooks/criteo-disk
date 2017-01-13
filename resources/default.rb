@@ -8,7 +8,7 @@ property :queue_properties, Hash
 property :partitions, Hash, required: true
 
 load_current_value do |new_resource|
-  disk_infos = ::DiskCriteo::Utils.scan_existing(node, new_resource.device)
+  disk_infos = ::CriteoDisk::Utils.scan_existing(node, new_resource.device)
   if disk_infos
     label disk_infos['label']
   else
@@ -31,7 +31,7 @@ action :create do
 
   # We set the queue properties
   property_path = ::File.join('/sys','block', ::File.basename(device), 'queue')
-  ::DiskCriteo::Utils.hash_to_path(queue_properties, property_path).each do |file, val|
+  ::CriteoDisk::Utils.hash_to_path(queue_properties, property_path).each do |file, val|
     queue_property file do
       value val
       action :set
@@ -51,8 +51,8 @@ action :create do
       flag part_infos['flag']
       file_system part_infos['file_system']
       mount_point part_infos['mount_point']
-      mount_opts ::DiskCriteo::Utils.transform_options(part_infos['mount_options'], 'mount')
-      mkfs_opts ::DiskCriteo::Utils.transform_options(part_infos['mkfs_options'])
+      mount_opts ::CriteoDisk::Utils.transform_options(part_infos['mount_options'], 'mount')
+      mkfs_opts ::CriteoDisk::Utils.transform_options(part_infos['mkfs_options'])
       action [:create]
     end
   end

@@ -7,7 +7,7 @@ property :file, String, name_property: true
 property :value, [String, Integer], required: true
 
 load_current_value do |new_resource|
-  current_value = ::DiskCriteo::Utils.check_queue_property(new_resource.file)
+  current_value = ::CriteoDisk::Utils.check_queue_property(new_resource.file)
   if current_value
     if new_resource.value.is_a? String
       value current_value.to_s
