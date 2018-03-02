@@ -14,7 +14,10 @@ driver:
   name: ec2
   instance_type: t2.micro
   associate_public_ip: true
+  iam_profile_name: test-kitchen
   region: <%= ENV['AWS_REGION'] || 'us-west-2' %>
+  tags:
+    created-by: <%= ENV['AWS_SSH_KEY_ID'] %>
   subnet_filter:
     tag:   'Name'
     value: <%= ENV['AWS_SUBNET'] || 'chef-testing-opensource-vpc-subnet' %>
@@ -58,6 +61,10 @@ platforms:
     attributes:
       criteo_disk:
         '/dev/xvdb':
+          label: gpt
+          queue_properties:
+            scheduler: 'noop'
+            read_ahead_kb: '8192'
           partitions:
             TOOLS:
               size: '11G'
@@ -74,3 +81,6 @@ platforms:
               file_system: 'ext4'
               mount_point: '/media/data3'
               mount_options: 'defaults'
+
+suites:
+<%= require 'erubis'; Erubis::Eruby.new(File.read('.kitchen_suites.yml')).evaluate %>
