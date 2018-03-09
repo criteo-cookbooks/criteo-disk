@@ -12,7 +12,7 @@
 
 driver:
   name: ec2
-  instance_type: t2.micro
+  instance_type: t2.large
   associate_public_ip: true
   iam_profile_name: test-kitchen
   region: <%= ENV['AWS_REGION'] || 'us-west-2' %>
@@ -29,7 +29,7 @@ driver:
       ebs:
         volume_type: gp2
         delete_on_termination: true
-    - device_name: /dev/sdb
+    - device_name: /dev/xvdb
       ebs:
         volume_size: 20
         volume_type: gp2
