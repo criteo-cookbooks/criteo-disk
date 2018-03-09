@@ -70,8 +70,15 @@ module DiskCriteo
       reference.to_i.between?(down, up)
     end
 
+    # TODO: Make alignment value a customizable variable
     def find_first_offset(disk, size)
-      ::BlockDevice::Parted.free_spaces(disk).find { |p| p['size'] >= size }.to_h['start']
+      spaces = ::BlockDevice::Parted.free_spaces(disk).map do |p|
+        diff = p['start'] % 1_048_576
+        p['start'] += 1_048_576 - diff
+        p['size'] -= diff
+        p
+      end
+      spaces.find { |p| p['size'] >= size }.to_h['start']
     end
 
     # Find sector limits in MB
@@ -94,7 +101,7 @@ module DiskCriteo
     def convert_to_byte(value)
       power = %w[B K M G T].find_index { |v| value =~ /[\s0-9]#{v}$/i }
       raise "Unsupported unit in '#{value}'" if power.negative?
-      value.to_f * 1024 ** power
+      (value.to_f * 1024 ** power).to_i
     end
 
     def convert_size(value, convert_to, sector_size = nil)

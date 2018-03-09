@@ -68,9 +68,10 @@ action :create do
       size = ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
       blockdevice_volume_gpt_partition new_resource.disk do
         partition_name new_resource.part_name
-        offset lazy { ::DiskCriteo::Utils.find_first_offset(disk, size) }
+        offset lazy { @value ||= ::DiskCriteo::Utils.find_first_offset(new_resource.disk, size) }
         size size
         flags new_resource.flag
+        block_device new_resource.disk
       end
     when 'msdos'
     end
