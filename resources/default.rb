@@ -23,9 +23,8 @@ action :create do
 
   # Create label
   converge_if_changed :label do
-    parted_disk device do
-      label_type label
-      action :mklabel
+    blockdevice_volume_group device do
+      type label
     end
   end
 

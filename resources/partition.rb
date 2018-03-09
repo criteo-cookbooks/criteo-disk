@@ -3,9 +3,15 @@ resource_name :partition
 actions :create
 default_action :create
 
+# Idea: for msdos partitions, use part_name to store the partition ID
+# (1, 2, 3, or 4) so we can make this idempotent. part_name in msdos
+# is useless, but we need a way to know which partition ID is ours if
+# it already exists.
+
 # Resource properties
 property :part_name, String, name_property: true
 property :disk, String, required: true
+property :device_type, String, default: 'gpt', equal_to: %w[gpt msdos]
 property :size, String, required: true
 property :flag, String, required: false
 property :file_system, String, required: true
@@ -57,13 +63,16 @@ action :create do
       end
     end
     # And we recreate it
-    todo = flag.nil? ? [:mkpart] : [:mkpart, :setflag]
-    parted_disk disk do
-      part_type part_name
-      part_start lazy { ::DiskCriteo::Utils.find_limits(node, disk, size)[0].to_s }
-      part_end lazy { ::DiskCriteo::Utils.find_limits(node, disk, size)[1].to_s }
-      flag_name flag
-      action todo
+    case new_resource.device_type
+    when 'gpt'
+      size = ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
+      blockdevice_volume_gpt_partition new_resource.disk do
+        partition_name new_resource.part_name
+        offset lazy { ::DiskCriteo::Utils.find_first_offset(disk, size) }
+        size size
+        flags new_resource.flag
+      end
+    when 'msdos'
     end
 
     # Format and mount if needed

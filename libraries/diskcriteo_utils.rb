@@ -70,6 +70,10 @@ module DiskCriteo
       reference.to_i.between?(down, up)
     end
 
+    def find_first_offset(disk, size)
+      ::BlockDevice::Parted.free_spaces(disk).find { |p| p['size'] >= size }.to_h['start']
+    end
+
     # Find sector limits in MB
     def find_limits(node, disk, size)
       # If the size is the word key "ALL", we directly return limits in percent
@@ -85,6 +89,12 @@ module DiskCriteo
       start_part = start_part.to_i < alignment ? alignment : start_part.to_i + alignment - 1
       end_part = start_part.to_i + size_sec.to_i
       %W(#{start_part}s #{end_part}s)
+    end
+
+    def convert_to_byte(value)
+      power = %w[B K M G T].find_index { |v| value =~ /[\s0-9]#{v}$/i }
+      raise "Unsupported unit in '#{value}'" if power.negative?
+      value.to_f * 1024 ** power
     end
 
     def convert_size(value, convert_to, sector_size = nil)
