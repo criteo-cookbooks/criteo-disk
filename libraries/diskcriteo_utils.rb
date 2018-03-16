@@ -50,7 +50,9 @@ module DiskCriteo
       # Add mount_point using filesystem ohai
       meta['meta_part'].each do |name, infos|
         dev = "#{disk}#{infos['id']}"
-        partitions[name]['mount_point'] = node['filesystem'][dev].nil? ? nil : node['filesystem'][dev]['mount']
+        partitions[name]['mount_point'] = if node['filesystem2']['by_device'][dev]
+                                            node['filesystem2']['by_device'][dev]['mounts'].first
+                                          end
       end
 
       disk_infos['label'] = disk_raw[5]
