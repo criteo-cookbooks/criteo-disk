@@ -63,9 +63,14 @@ action :create do
       end
     end
     # And we recreate it
+		size = case new_resource.size
+					 when 'ALL'
+						 ::DiskCriteo::Utils.find_all_offset(new_resource.disk)
+					 else 
+						 ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
+					 end
     case new_resource.device_type
     when 'gpt'
-      size = ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
       blockdevice_volume_gpt_partition new_resource.disk do
         partition_name new_resource.part_name
         offset lazy { @value ||= ::DiskCriteo::Utils.find_first_offset(new_resource.disk, size) }
@@ -74,7 +79,6 @@ action :create do
         block_device new_resource.disk
       end
     when 'msdos'
-      size = ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
       fs_type = if %w[ntfs linux-swap hfs].include?(new_resource.file_system)
                   new_resource.file_system
                 else

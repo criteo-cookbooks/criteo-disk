@@ -39,6 +39,12 @@ driver:
         volume_size: 20
         volume_type: gp2
         delete_on_termination: true
+    - device_name: /dev/xvdd
+      ebs:
+        volume_size: 20
+        volume_type: gp2
+        delete_on_termination: true
+
 
 transport:
   ssh_key: <%= ENV['HOME'] %>/.ssh/id_rsa
@@ -105,6 +111,14 @@ platforms:
               size: '2G'
               file_system: 'ext4'
               mount_point: '/media/msdos_data3'
+              mount_options: 'defaults'
+        '/dev/xvdd':
+          label: gpt
+          partitions:
+            TOOLS:
+              size: 'ALL'
+              file_system: 'ext4'
+              mount_point: '/media/all_data'
               mount_options: 'defaults'
 
 suites:

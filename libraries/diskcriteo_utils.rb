@@ -77,29 +77,26 @@ module DiskCriteo
     def find_first_offset(disk, size)
       spaces = ::BlockDevice::Parted.free_spaces(disk).map do |p|
         diff = p['start'] % 1_048_576
-        p['start'] += 1_048_576 - diff
+        p['start'] = align_offset(p['start'])
         p['size'] -= diff
         p
       end
       spaces.find { |p| p['size'] >= size }.to_h['start']
-    end
+		end
 
-    # Find sector limits in MB
-    def find_limits(node, disk, size)
-      # If the size is the word key "ALL", we directly return limits in percent
-      return ['0%', '100%'] if size.eql?('ALL')
-      alignment = 2048
-      infos = scan_existing(node, disk)
-      size_sec = convert_size(size, 's', infos['meta']['logical_block_size'])
-      # We try to find a matching free part
-      start_part = infos['meta']['free'].reject { |i| i['size'].to_i < size_sec.to_i + alignment }.map do |p|
-        p['start']
-      end.join
-      raise 'not enough free space to create the partition' if start_part.empty?
-      start_part = start_part.to_i < alignment ? alignment : start_part.to_i + alignment - 1
-      end_part = start_part.to_i + size_sec.to_i
-      %W(#{start_part}s #{end_part}s)
-    end
+    def align_offset(offset)
+			diff = offset % 1_048_576
+			offset + 1_048_576 - diff
+		end
+
+    def find_all_size(disk)
+			spaces = ::BlockDevice::Parted.device_table(disk)
+# align spaces.first['start']
+      start = align_offset(spaces.first['start'])
+      raw_size = spaces.last['end'] - start
+      diff = raw_size % 1_048_576
+      raw_size - diff
+		end
 
     def convert_to_byte(value)
       power = %w[B K M G T].find_index { |v| value =~ /[\s0-9]#{v}$/i }
