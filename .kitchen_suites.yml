@@ -2,3 +2,8 @@
   add_vagrant_disk: true
   run_list:
     - recipe[criteo-disk::default]
+  verifier:
+    name: inspec
+    inspec_tests:
+      - path: test/integration/default
+    inspec:

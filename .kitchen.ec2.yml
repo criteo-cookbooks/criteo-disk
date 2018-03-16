@@ -62,7 +62,9 @@ platforms:
                 '-E': 'lazy_itable_init=1'
   - name: centos-7
     driver:
-      image_id: ami-d2c924b2
+      image_search:
+        owner-id: "847342425178"
+        name: "criteo-centos-7-ami*"
     attributes:
       criteo_disk:
         '/dev/xvdb':
