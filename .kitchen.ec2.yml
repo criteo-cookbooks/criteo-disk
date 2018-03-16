@@ -34,6 +34,11 @@ driver:
         volume_size: 20
         volume_type: gp2
         delete_on_termination: true
+    - device_name: /dev/xvdc
+      ebs:
+        volume_size: 20
+        volume_type: gp2
+        delete_on_termination: true
 
 transport:
   ssh_key: <%= ENV['HOME'] %>/.ssh/id_rsa
@@ -80,6 +85,24 @@ platforms:
               size: '2G'
               file_system: 'ext4'
               mount_point: '/media/data3'
+              mount_options: 'defaults'
+        '/dev/xvdc':
+          label: msdos
+          partitions:
+            '1':
+              size: '11G'
+              file_system: 'ext4'
+              mount_point: '/media/msdos_data'
+              mount_options: 'defaults'
+            '2':
+              size: '6G'
+              file_system: 'ext4'
+              mount_point: '/media/msdos_data2'
+              mount_options: 'defaults'
+            '3':
+              size: '2G'
+              file_system: 'ext4'
+              mount_point: '/media/msdos_data3'
               mount_options: 'defaults'
 
 suites:

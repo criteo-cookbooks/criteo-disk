@@ -46,6 +46,7 @@ action :create do
   partitions.each do |part_name, part_infos|
     partition part_name do
       disk device
+      device_type label
       size part_infos['size']
       flag part_infos['flag']
       file_system part_infos['file_system']

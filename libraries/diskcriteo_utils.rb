@@ -8,7 +8,7 @@ module DiskCriteo
       cmd.run_command.stdout.split($/)[0].scan(/\d\.*/).join.to_f
     end
 
-    def scan_existing(node, disk)
+    def scan_existing(node, disk, device_type = 'gpt')
       disk_infos = Mash.new
       cmd = Mixlib::ShellOut.new("parted -m #{disk} unit s print free")
       cmd.run_command
@@ -31,12 +31,13 @@ module DiskCriteo
 
       meta['meta_part'] = Mash.new
       part.each do |i|
-        partitions[(i[5]).to_s] = {
+        name = device_type == 'gpt' ? i[5] : i[0]
+        partitions[name.to_s] = {
           'size' => i[3],
           'size_in_G' => "#{convert_size(i[3], 'G', meta['logical_block_size'])}G",
           'file_system' => i[4]
         }
-        meta['meta_part'][(i[5]).to_s] = {
+        meta['meta_part'][name.to_s] = {
           'id' => i[0],
           'start' => i[1],
           'stop' => i[2]
@@ -142,8 +143,8 @@ module DiskCriteo
       array_value[1].eql?('0') ? array_value[0] : value
     end
 
-    def find_part(node, disk, name)
-      part_infos = scan_existing(node, disk)['meta']['meta_part']
+    def find_part(node, disk, name, device_type)
+      part_infos = scan_existing(node, disk, device_type)['meta']['meta_part']
       part_infos.select { |n| n.eql? name }.map { |_, i| i['id'] }.join || nil
     end
 

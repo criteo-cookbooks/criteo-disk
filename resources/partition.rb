@@ -20,7 +20,7 @@ property :mount_opts, String
 property :mount_point, String
 
 load_current_value do |new_resource|
-  all_infos = ::DiskCriteo::Utils.scan_existing(node, new_resource.disk)
+  all_infos = ::DiskCriteo::Utils.scan_existing(node, new_resource.disk, new_resource.device_type)
   part_infos = all_infos['partitions'][new_resource.part_name]
   if part_infos
     # We handle the 'ALL' specific size.
@@ -51,7 +51,7 @@ action :create do
       Chef::Log.warn('Destroying the existing part')
       # We ensure that the partition is not mounted and enable in the fstab
       mount current_resource.mount_point do
-        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name)}" }
+        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name, new_resource.device_type)}" }
         action [:umount, :disable]
         not_if { current_resource.mount_point == 'None' }
       end
@@ -74,13 +74,28 @@ action :create do
         block_device new_resource.disk
       end
     when 'msdos'
+      size = ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
+      fs_type = if %w[ntfs linux-swap hfs].include?(new_resource.file_system)
+                  new_resource.file_system
+                else
+                  'ext2'
+                end
+      blockdevice_volume_msdos_partition new_resource.disk do
+        id new_resource.part_name.to_i
+        offset lazy { @value ||= ::DiskCriteo::Utils.find_first_offset(new_resource.disk, size) }
+        size size
+        flags new_resource.flag
+        fs_type fs_type
+        partition_type 'primary'
+        block_device new_resource.disk
+      end
     end
 
     # Format and mount if needed
     to_perform = mount_point.nil? ? [:create] : [:create, :mount, :enable]
     filesystem part_name do
       fstype file_system
-      device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name)}" }
+      device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name, new_resource.device_type)}" }
       mount mount_point
       options mount_opts
       mkfs_options mkfs_opts
@@ -93,7 +108,7 @@ action :create do
   converge_if_changed(:mount_point) do
     unless current_resource.nil?
       mount current_resource.mount_point do
-        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name)}" }
+        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name, new_resource.device_type)}" }
         action [:umount, :disable]
       end
     end
@@ -103,7 +118,7 @@ action :create do
       end
 
       mount mount_point do
-        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name)}" }
+        device lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name, new_resource.device_type)}" }
         fstype file_system
         options mount_opts
         action [:mount, :enable]
