@@ -1,0 +1,62 @@
+---
+- id: 1
+  start: 17408
+  end: 1048575
+  size: 1031168
+  fs_type: free;
+  name: 
+  flags: []
+- id: 4
+  start: 1048576
+  end: 2097151
+  size: 1048576
+  fs_type: xfs
+  name: primary
+  flags:
+  - boot;
+- id: 1
+  start: 2097152
+  end: 1002097151
+  size: 1000000000
+  fs_type: xfs
+  name: primary
+  flags:
+  - ";"
+- id: 2
+  start: 1002097152
+  end: 5979997992447
+  size: 5978995895296
+  fs_type: xfs
+  name: primary
+  flags:
+  - ";"
+- id: 3
+  start: 5979997992448
+  end: 5999997992447
+  size: 20000000000
+  fs_type: xfs
+  name: primary
+  flags:
+  - ";"
+- id: 1
+  start: 5999997992448
+  end: 5999997992450
+  size: 2
+  fs_type: free;
+  name: 
+  flags: []
+- id: 5
+  start: 5999997992450
+  end: 5999998004795
+  size: 12345
+  fs_type: xfs
+  name: primary
+  flags:
+  - boot;
+- id: 1
+  start: 5999998004795
+  end: 5999999041023
+  size: 1036229
+  fs_type: free;
+  name: 
+  flags: []

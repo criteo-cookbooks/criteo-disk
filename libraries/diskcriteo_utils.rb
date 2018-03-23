@@ -1,6 +1,8 @@
 module DiskCriteo
   # Functions for partition management
   module Utils
+    MB = 1_048_576
+
     module_function
 
     def parted_version
@@ -51,9 +53,7 @@ module DiskCriteo
       # Add mount_point using filesystem ohai
       meta['meta_part'].each do |name, infos|
         dev = "#{disk}#{infos['id']}"
-        partitions[name]['mount_point'] = if node['filesystem2']['by_device'][dev]
-                                            node['filesystem2']['by_device'][dev]['mounts'].first
-                                          end
+        partitions[name]['mount_point'] = node['filesystem2'].dig('by_device', dev, 'mounts').to_a.first
       end
 
       disk_infos['label'] = disk_raw[5]
@@ -73,35 +73,27 @@ module DiskCriteo
       reference.to_i.between?(down, up)
     end
 
-    # TODO: Make alignment value a customizable variable
-    def find_first_offset(disk, size)
-      spaces = ::BlockDevice::Parted.free_spaces(disk).map do |p|
-        diff = p['start'] % 1_048_576
-        p['start'] = align_offset(p['start'])
-        p['size'] -= diff
-        p
-      end
-      spaces.find { |p| p['size'] >= size }.to_h['start']
-		end
+    def find_first_offset(spaces, size)
+      spaces.map do |p|
+        start, diff = align_offset(p['start'])
+        { start: start, size: p['size'] - diff }
+      end.find { |p| p[:size] >= size }.to_h[:start]
+    end
 
     def align_offset(offset)
-			diff = offset % 1_048_576
-			offset + 1_048_576 - diff
-		end
+      diff = offset % MB
+      [offset + MB - diff, diff]
+    end
 
-    def find_all_size(disk)
-			spaces = ::BlockDevice::Parted.device_table(disk)
-# align spaces.first['start']
-      start = align_offset(spaces.first['start'])
-      raw_size = spaces.last['end'] - start
-      diff = raw_size % 1_048_576
-      raw_size - diff
-		end
+    def find_all_size(spaces)
+      start = align_offset(spaces.first['start']).first
+      align_offset(spaces.last['end']).first - (start + MB)
+    end
 
     def convert_to_byte(value)
       power = %w[B K M G T].find_index { |v| value =~ /[\s0-9]#{v}$/i }
       raise "Unsupported unit in '#{value}'" if power.negative?
-      (value.to_f * 1024 ** power).to_i
+      (value.to_f * 1024**power).to_i
     end
 
     def convert_size(value, convert_to, sector_size = nil)

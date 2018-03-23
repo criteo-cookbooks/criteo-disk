@@ -1,5 +1,9 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
+require 'yaml'
+
+SPEC_DATA_DIR = ::File.expand_path('data', __dir__)
+LIBRARY_DIR = ::File.expand_path('../libraries', __dir__)
 
 def expect_shellout(cmd, opts = {})
   simulate_failure = opts[:simulate_failure]
