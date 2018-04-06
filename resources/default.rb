@@ -29,7 +29,7 @@ action :create do
   end
 
   # We set the queue properties
-  property_path = ::File.join('/sys','block', ::File.basename(device), 'queue')
+  property_path = ::File.join('/sys', 'block', ::File.basename(device), 'queue')
   ::DiskCriteo::Utils.hash_to_path(new_resource.queue_properties, property_path).each do |file, val|
     queue_property file do
       value val

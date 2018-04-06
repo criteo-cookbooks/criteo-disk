@@ -22,13 +22,13 @@ module DiskCriteo
       end
       disk_raw = parted_output[1].split(':')
       part_raw = parted_output[2..-1]
-      part = part_raw.map { |t| t.split(':') }.select { |t| !t[4].to_s.eql? 'free;' }
+      part = part_raw.map { |t| t.split(':') }.reject { |t| t[4].to_s.eql? 'free;' }
       free_part = part_raw.map { |t| t.split(':') }.select { |t| t[4].to_s.eql? 'free;' }
       partitions = Mash.new
       meta = {
         'physical_block_size' => disk_raw[3],
         'logical_block_size' => disk_raw[4],
-        'size' => disk_raw[1]
+        'size' => disk_raw[1],
       }
 
       meta['meta_part'] = Mash.new
@@ -37,12 +37,12 @@ module DiskCriteo
         partitions[name.to_s] = {
           'size' => i[3],
           'size_in_G' => "#{convert_size(i[3], 'G', meta['logical_block_size'])}G",
-          'file_system' => i[4]
+          'file_system' => i[4],
         }
         meta['meta_part'][name.to_s] = {
           'id' => i[0],
           'start' => i[1],
-          'stop' => i[2]
+          'stop' => i[2],
         }
       end
       meta['free'] = free_part.map do |i|
@@ -164,7 +164,7 @@ module DiskCriteo
 
     # Use in queue_property resource to load the current value
     def check_queue_property(file)
-      raise "Property file #{file} doesn't exist" unless ::File.exists?(file)
+      raise "Property file #{file} doesn't exist" unless ::File.exist?(file)
       raise "The given property file is a directory (#{file})." if ::File.directory?(file)
       case ::File.basename(file)
       when 'scheduler'
@@ -176,21 +176,20 @@ module DiskCriteo
       end
     end
 
-    def hash_to_path(hash, prepend_string = '' )
+    def hash_to_path(hash, prepend_string = '')
       return {} if hash.nil?
-      paths_values = Hash.new
+      paths_values = {}
       hash.each do |key, value|
         case value
         when Hash
-          value.map do |k,v|
+          value.map do |k, v|
             paths_values[::File.join(prepend_string, key, k)] = v
           end
         when String, Integer
-          paths_values[::File.join(prepend_string, key )] = value
+          paths_values[::File.join(prepend_string, key)] = value
         end
       end
-      return paths_values
+      paths_values
     end
-
   end
 end

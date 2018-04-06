@@ -13,7 +13,7 @@ os_version = ['6.7', '7.2.1511']
 # Disk to create
 disk = '/dev/sdb'
 # Expected parted output
-parted_part_output ="BYT;
+parted_part_output = "BYT;
 #{disk}:41943040s:scsi:512:512:gpt:ATA VBOX HARDDISK;
 1:34s:41943006s:41942973s:free;"
 # Partitions declaration
@@ -28,9 +28,9 @@ part1 = {
     'mkfs_options' => {
       '-O' => 'uninit_bg',
       '-m' => 0,
-      '-E' => 'lazy_itable_init=1'
-    }
-  }
+      '-E' => 'lazy_itable_init=1',
+    },
+  },
 }
 part2 = {
   'DATA2' => {
@@ -41,9 +41,9 @@ part2 = {
     'mkfs_options' => {
       '-O' => 'uninit_bg',
       '-m' => 0,
-      '-E' => 'lazy_itable_init=1'
-    }
-  }
+      '-E' => 'lazy_itable_init=1',
+    },
+  },
 }
 
 describe 'criteo-disk::default' do
@@ -59,8 +59,8 @@ describe 'criteo-disk::default' do
       end
       let(:chef_run) do
         ::ChefSpec::SoloRunner.new(platform:  'centos',
-                                 version:   v,
-                                 step_into: ['criteo_disk']) do |node|
+                                   version:   v,
+                                   step_into: ['criteo_disk'],) do |node|
           node.normal['criteo_disk'][disk]['partitions'] = partitions
           node.normal['criteo_disk'][disk]['label'] = 'gpt'
         end.converge(described_recipe)

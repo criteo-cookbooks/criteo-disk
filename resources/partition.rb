@@ -101,7 +101,7 @@ action :create do
     end
 
     # Format and mount if needed
-    to_perform = new_resource.mount_point.nil? ? [:create] : [:create, :mount, :enable]
+    to_perform = new_resource.mount_point.nil? ? [:create] : %i[create mount enable]
     filesystem new_resource.part_name do
       fstype new_resource.file_system
       device(lazy { "#{new_resource.disk}#{::DiskCriteo::Utils.find_part(node, new_resource.disk, new_resource.part_name, new_resource.device_type)}" })
@@ -118,7 +118,7 @@ action :create do
     unless current_resource.nil?
       mount current_resource.mount_point do
         device(lazy { "#{current_resource.disk}#{::DiskCriteo::Utils.find_part(node, current_resource.disk, current_resource.part_name, new_resource.device_type)}" })
-        action [:umount, :disable]
+        action %i[umount disable]
       end
     end
     if new_resource.mount_point
@@ -130,7 +130,7 @@ action :create do
         device(lazy { "#{new_resource.disk}#{::DiskCriteo::Utils.find_part(node, new_resource.disk, new_resource.part_name, new_resource.device_type)}" })
         fstype new_resource.file_system
         options new_resource.mount_opts
-        action [:mount, :enable]
+        action %i[mount enable]
       end
     end
   end
