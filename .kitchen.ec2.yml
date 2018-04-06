@@ -75,9 +75,6 @@ platforms:
       criteo_disk:
         '/dev/xvdb':
           label: gpt
-          queue_properties:
-            scheduler: 'noop'
-            read_ahead_kb: '8192'
           partitions:
             TOOLS:
               size: '11G'
@@ -85,7 +82,7 @@ platforms:
               mount_point: '/media/data'
               mount_options: 'defaults'
             DATA:
-              size: '6G'
+              size: '-'
               file_system: 'ext4'
               mount_point: '/media/data2'
               mount_options: 'defaults'

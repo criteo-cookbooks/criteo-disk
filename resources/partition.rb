@@ -10,7 +10,7 @@ default_action :create
 
 # Resource properties
 property :part_name, String, name_property: true
-property :disk, String, required: true
+property :disk, String, required: true, identity: true
 property :device_type, String, default: 'gpt', equal_to: %w[gpt msdos]
 property :size, String, required: true
 property :flag, String, required: false
@@ -51,13 +51,13 @@ action :create do
       Chef::Log.warn('Destroying the existing part')
       # We ensure that the partition is not mounted and enable in the fstab
       mount current_resource.mount_point do
-        device(lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name, new_resource.device_type)}" })
+        device(lazy { "#{current_resource.disk}#{::DiskCriteo::Utils.find_part(node, current_resource.disk, current_resource.part_name, new_resource.device_type)}" })
         action %i[umount disable]
         not_if { current_resource.mount_point == 'None' }
       end
       ruby_block "Deleting partition #{current_resource.part_name}" do
         block do
-          ::DiskCriteo::Utils.destroy_part(node, disk, current_resource.part_name)
+          ::DiskCriteo::Utils.destroy_part(node, current_resource.disk, current_resource.part_name, current_resource.device_type)
         end
         action :run
       end
@@ -65,7 +65,7 @@ action :create do
     # And we recreate it
     size = case new_resource.size
            when 'ALL'
-             ::DiskCriteo::Utils.find_all_size(::BlockDevice::Parted.device_table(disk))
+             ::DiskCriteo::Utils.find_all_size(::BlockDevice::Parted.device_table(new_resource.disk))
            else
              ::DiskCriteo::Utils.convert_to_byte(new_resource.size)
            end
@@ -101,13 +101,13 @@ action :create do
     end
 
     # Format and mount if needed
-    to_perform = mount_point.nil? ? [:create] : [:create, :mount, :enable]
-    filesystem part_name do
-      fstype file_system
-      device(lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name, new_resource.device_type)}" })
-      mount mount_point
-      options mount_opts
-      mkfs_options mkfs_opts
+    to_perform = new_resource.mount_point.nil? ? [:create] : [:create, :mount, :enable]
+    filesystem new_resource.part_name do
+      fstype new_resource.file_system
+      device(lazy { "#{new_resource.disk}#{::DiskCriteo::Utils.find_part(node, new_resource.disk, new_resource.part_name, new_resource.device_type)}" })
+      mount new_resource.mount_point
+      options new_resource.mount_opts
+      mkfs_options new_resource.mkfs_opts
       ignore_existing true
       force true
       action to_perform
@@ -117,19 +117,19 @@ action :create do
   converge_if_changed(:mount_point) do
     unless current_resource.nil?
       mount current_resource.mount_point do
-        device(lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, current_resource.part_name, new_resource.device_type)}" })
+        device(lazy { "#{current_resource.disk}#{::DiskCriteo::Utils.find_part(node, current_resource.disk, current_resource.part_name, new_resource.device_type)}" })
         action [:umount, :disable]
       end
     end
-    if mount_point
-      directory mount_point do
+    if new_resource.mount_point
+      directory new_resource.mount_point do
         recursive true
       end
 
-      mount mount_point do
-        device(lazy { "#{disk}#{::DiskCriteo::Utils.find_part(node, disk, part_name, new_resource.device_type)}" })
-        fstype file_system
-        options mount_opts
+      mount new_resource.mount_point do
+        device(lazy { "#{new_resource.disk}#{::DiskCriteo::Utils.find_part(node, new_resource.disk, new_resource.part_name, new_resource.device_type)}" })
+        fstype new_resource.file_system
+        options new_resource.mount_opts
         action [:mount, :enable]
       end
     end

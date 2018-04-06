@@ -53,7 +53,7 @@ module DiskCriteo
       # Add mount_point using filesystem ohai
       meta['meta_part'].each do |name, infos|
         dev = "#{disk}#{infos['id']}"
-        partitions[name]['mount_point'] = node['filesystem2'].dig('by_device', dev, 'mounts').to_a.first
+        partitions[name]['mount_point'] = node['filesystem'].dig('by_device', dev, 'mounts').to_a.first
       end
 
       disk_infos['label'] = disk_raw[5]
@@ -82,7 +82,7 @@ module DiskCriteo
 
     def align_offset(offset)
       diff = offset % MB
-      [offset + MB - diff, diff]
+      [offset + (diff.zero? ? 0 : MB - diff), diff]
     end
 
     def find_all_size(spaces)
@@ -92,7 +92,7 @@ module DiskCriteo
 
     def convert_to_byte(value)
       power = %w[B K M G T].find_index { |v| value =~ /[\s0-9]#{v}$/i }
-      raise "Unsupported unit in '#{value}'" if power.negative?
+      raise "Unsupported unit in '#{value}'" if power.nil?
       (value.to_f * 1024**power).to_i
     end
 
@@ -103,24 +103,29 @@ module DiskCriteo
         when /G$/ then value.to_f / 1024
         when /T$/ then value.to_f / 1024 / 1024
         when /s$/ then my_round((value.to_f * 1024 * 1024 / sector_size.to_i))
+        when /B$/ then my_round(value.to_f * 1024 * 1024)
         end
       when /G$/
         case convert_to
         when /M$/ then (value.to_f * 1024).to_i
         when /T$/ then value.to_f / 1024
         when /s$/ then my_round((value.to_f * 1024 * 1024 * 1024 / sector_size.to_i))
+        when /B$/ then my_round(value.to_f * 1024 * 1024 * 1024)
         end
       when /T$/
         case convert_to
         when /G$/ then (value.to_f * 1024).to_i
         when /M$/ then (value.to_f * 1024 * 1024).to_i
         when /s$/ then my_round((value.to_f * 1024 * 1024 * 1024 * 1024 / sector_size.to_i))
+        when /B$/ then my_round(value.to_f * 1024 * 1024 * 1024 * 1024)
         end
       when /s$/
         case convert_to
         when /G$/ then my_round((value.to_f * sector_size.to_i / 1024 / 1024 / 1024))
         when /T$/ then my_round((value.to_f * sector_size.to_i / 1024 / 1024 / 1024 / 1024))
         when /M$/ then my_round((value.to_f * sector_size.to_i / 1024 / 1024))
+        when /kB$/ then my_round((value.to_f * sector_size.to_i / 1024))
+        when /B$/ then my_round((value.to_f * sector_size.to_i))
         end
       else
         raise "Could not convert #{value} to sectors"
@@ -132,19 +137,19 @@ module DiskCriteo
       array_value[1].eql?('0') ? array_value[0] : value
     end
 
-    def find_part(node, disk, name, device_type)
+    def find_part(node, disk, name, device_type = 'gpt')
       part_infos = scan_existing(node, disk, device_type)['meta']['meta_part']
       part_infos.select { |n| n.eql? name }.map { |_, i| i['id'] }.join || nil
     end
 
-    def umount_part(node, disk, name)
-      id = find_part(node, disk, name)
+    def umount_part(node, disk, name, device_type = 'gpt')
+      id = find_part(node, disk, name, device_type)
       umount = Mixlib::ShellOut.new("umount #{disk}#{id}")
       umount.run_command
     end
 
-    def destroy_part(node, disk, name)
-      id = find_part(node, disk, name)
+    def destroy_part(node, disk, name, device_type = 'gpt')
+      id = find_part(node, disk, name, device_type)
       Mixlib::ShellOut.new("parted #{disk} --script -- rm #{id}").run_command
     end
 

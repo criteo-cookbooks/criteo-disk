@@ -30,7 +30,7 @@ action :create do
 
   # We set the queue properties
   property_path = ::File.join('/sys','block', ::File.basename(device), 'queue')
-  ::DiskCriteo::Utils.hash_to_path(queue_properties, property_path).each do |file, val|
+  ::DiskCriteo::Utils.hash_to_path(new_resource.queue_properties, property_path).each do |file, val|
     queue_property file do
       value val
       action :set
@@ -43,11 +43,13 @@ action :create do
   # In the future version, we will change the way to create the partitions.
   raise 'CentOS 6 doesn\'t handle more than 1 partition' if partitions.size > 1 && node['platform_version'].to_i < 7
 
+  puts device.inspect
+
   partitions.each do |part_name, part_infos|
     partition part_name do
       disk device
       device_type label
-      size part_infos['size']
+      size lazy { part_infos['size'] == '-' ? "#{compute_rest_size}B" : part_infos['size'] }
       flag part_infos['flag']
       file_system part_infos['file_system']
       mount_point part_infos['mount_point']
@@ -55,5 +57,15 @@ action :create do
       mkfs_opts ::DiskCriteo::Utils.transform_options(part_infos['mkfs_options'])
       action [:create]
     end
+  end
+end
+
+action_class do
+  def compute_rest_size
+    @computed_rest_size ||= begin
+                              size_all = ::DiskCriteo::Utils.find_all_size(::BlockDevice::Parted.device_table(new_resource.device))
+                              size_assigned = new_resource.partitions.values.reject { |part_infos| part_infos['size'] == '-' }.map { |part_infos| ::DiskCriteo::Utils.convert_size(part_infos['size'], 'B').to_i }.reduce(&:+)
+                              size_all - size_assigned
+                            end
   end
 end
